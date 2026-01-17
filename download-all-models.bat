@@ -13,101 +13,94 @@ if not exist "models" mkdir models
 REM Model URLs (you'll need to update these with actual URLs)
 REM For now, using placeholder URLs - replace with actual model locations
 
-echo This script will download ~60 MB of AI models
+echo This script will download ~243 MB of AI models from Hugging Face
+echo Using UVR (Ultimate Vocal Remover) MDX-Net models
 echo.
 pause
 
 REM ================================================================
-REM Model 1: Sherpa-ONNX (~15 MB)
+REM Model 1: Sherpa-ONNX (64 MB) - UVR-MDX-NET-Inst_HQ_1
 REM ================================================================
 
 echo.
-echo [1/4] Downloading Sherpa-ONNX model (15 MB)...
+echo [1/4] Downloading Sherpa-ONNX model (64 MB)...
 
-REM Option A: Download from Sherpa-ONNX releases
-curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/audio-tagging-models/sherpa-onnx-zipformer-audio-tagging-2024-04-09.tar.bz2 -o models/sherpa-temp.tar.bz2
+curl -L "https://huggingface.co/Blane187/all_public_uvr_models/resolve/main/UVR-MDX-NET-Inst_HQ_1.onnx" -o models\sherpa-vocals.onnx
 
-if exist models\sherpa-temp.tar.bz2 (
-    echo Extracting Sherpa model...
-    tar -xjf models\sherpa-temp.tar.bz2 -C models\
-
-    REM Find and rename the model file
-    for /r models %%f in (*.onnx) do (
-        copy "%%f" models\sherpa-vocals.onnx
-        goto :sherpa_done
-    )
-    :sherpa_done
-
-    del models\sherpa-temp.tar.bz2
-    echo [OK] Sherpa-ONNX downloaded
+if exist models\sherpa-vocals.onnx (
+    echo [OK] Sherpa-ONNX downloaded (64 MB)
 ) else (
     echo [ERROR] Failed to download Sherpa-ONNX
     echo.
     echo Manual download:
-    echo 1. Visit: https://github.com/k2-fsa/sherpa-onnx/releases
-    echo 2. Download any audio separation model
+    echo 1. Visit: https://huggingface.co/Blane187/all_public_uvr_models
+    echo 2. Download UVR-MDX-NET-Inst_HQ_1.onnx
     echo 3. Save as: models\sherpa-vocals.onnx
     echo.
 )
 
 REM ================================================================
-REM Model 2: HS-TasNet (~8 MB)
+REM Model 2: HS-TasNet (64 MB) - UVR-MDX-NET-Inst_HQ_2
 REM ================================================================
 
 echo.
-echo [2/4] Downloading HS-TasNet model (8 MB)...
+echo [2/4] Downloading HS-TasNet model (64 MB)...
 
-REM This model needs to be converted from PyTorch
-REM For now, create a placeholder message
+curl -L "https://huggingface.co/seanghay/uvr_models/resolve/main/UVR-MDX-NET-Inst_HQ_2.onnx?download=true" -o models\hstasnet-vocals.onnx
 
-echo [INFO] HS-TasNet model requires conversion from source
-echo.
-echo To get this model:
-echo 1. See MODELS.md for conversion instructions
-echo 2. Or download pre-converted from your GitHub releases
-echo 3. Save as: models\hstasnet.onnx
-echo.
-
-REM Placeholder for actual download (update URL when available)
-REM curl -L https://github.com/YOUR_REPO/releases/download/models-v1.0/hstasnet.onnx -o models\hstasnet.onnx
-
-REM ================================================================
-REM Model 3: ClearerVoice (~12 MB)
-REM ================================================================
-
-echo.
-echo [3/4] Downloading ClearerVoice model (12 MB)...
-
-REM ClearerVoice from ModelScope
-echo [INFO] ClearerVoice model requires ModelScope download
-echo.
-echo To get this model:
-echo 1. See MODELS.md for download instructions
-echo 2. Or download pre-converted from your GitHub releases
-echo 3. Save as: models\clearervoice.onnx
-echo.
-
-REM Placeholder for actual download
-REM curl -L https://github.com/YOUR_REPO/releases/download/models-v1.0/clearervoice.onnx -o models\clearervoice.onnx
+if exist models\hstasnet-vocals.onnx (
+    echo [OK] HS-TasNet downloaded (64 MB)
+) else (
+    echo [ERROR] Failed to download HS-TasNet
+    echo.
+    echo Manual download:
+    echo 1. Visit: https://huggingface.co/seanghay/uvr_models
+    echo 2. Download UVR-MDX-NET-Inst_HQ_2.onnx
+    echo 3. Save as: models\hstasnet-vocals.onnx
+    echo.
+)
 
 REM ================================================================
-REM Model 4: SpleeterRT (~20 MB)
+REM Model 3: ClearerVoice (64 MB) - UVR-MDX-NET-Inst_HQ_3
 REM ================================================================
 
 echo.
-echo [4/4] Downloading SpleeterRT model (20 MB)...
+echo [3/4] Downloading ClearerVoice model (64 MB)...
 
-REM SpleeterRT model
-echo [INFO] SpleeterRT model requires conversion from Spleeter
-echo.
-echo To get this model:
-echo 1. See MODELS.md for conversion instructions
-echo 2. Or download pre-converted from your GitHub releases
-echo 3. Save as: models\spleeterrt.onnx
-echo.
+curl -L "https://huggingface.co/seanghay/uvr_models/resolve/main/UVR-MDX-NET-Inst_HQ_3.onnx?download=true" -o models\clearervoice-vocals.onnx
 
-REM Placeholder for actual download
-REM curl -L https://github.com/YOUR_REPO/releases/download/models-v1.0/spleeterrt.onnx -o models\spleeterrt.onnx
+if exist models\clearervoice-vocals.onnx (
+    echo [OK] ClearerVoice downloaded (64 MB)
+) else (
+    echo [ERROR] Failed to download ClearerVoice
+    echo.
+    echo Manual download:
+    echo 1. Visit: https://huggingface.co/seanghay/uvr_models
+    echo 2. Download UVR-MDX-NET-Inst_HQ_3.onnx
+    echo 3. Save as: models\clearervoice-vocals.onnx
+    echo.
+)
+
+REM ================================================================
+REM Model 4: SpleeterRT (51 MB) - UVR_MDXNET_KARA_2
+REM ================================================================
+
+echo.
+echo [4/4] Downloading SpleeterRT model (51 MB)...
+
+curl -L "https://huggingface.co/seanghay/uvr_models/resolve/main/UVR_MDXNET_KARA_2.onnx?download=true" -o models\spleeterrt-vocals.onnx
+
+if exist models\spleeterrt-vocals.onnx (
+    echo [OK] SpleeterRT downloaded (51 MB)
+) else (
+    echo [ERROR] Failed to download SpleeterRT
+    echo.
+    echo Manual download:
+    echo 1. Visit: https://huggingface.co/seanghay/uvr_models
+    echo 2. Download UVR_MDXNET_KARA_2.onnx
+    echo 3. Save as: models\spleeterrt-vocals.onnx
+    echo.
+)
 
 REM ================================================================
 REM Summary
@@ -126,15 +119,15 @@ if errorlevel 1 (
     echo IMPORTANT: You need to provide models before building installer.
     echo.
     echo Quick solution:
-    echo 1. Download pre-converted models from your GitHub releases
-    echo 2. Or convert models yourself (see MODELS.md)
+    echo 1. Run this script again to download models
+    echo 2. Or download manually from Hugging Face
     echo 3. Place in models\ directory:
-    echo    - models\sherpa-vocals.onnx
-    echo    - models\hstasnet.onnx (optional)
-    echo    - models\clearervoice.onnx (optional)
-    echo    - models\spleeterrt.onnx (optional)
+    echo    - models\sherpa-vocals.onnx (required)
+    echo    - models\hstasnet-vocals.onnx (optional)
+    echo    - models\clearervoice-vocals.onnx (optional)
+    echo    - models\spleeterrt-vocals.onnx (optional)
     echo.
-    echo At minimum, include sherpa-vocals.onnx for CPU-only users.
+    echo Total size: ~243 MB
     echo.
 ) else (
     echo Found models:
