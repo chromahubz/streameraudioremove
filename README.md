@@ -2,6 +2,8 @@
 
 Real-time audio isolation plugin for OBS Studio - removes background music from streams while preserving voice quality.
 
+**Platform Support:** ✅ Windows | ✅ macOS | ✅ Linux
+
 **Perfect for:** IRL streamers, music reaction streams, travel/event streaming, DMCA-free content.
 
 ## ✨ Features
@@ -27,6 +29,30 @@ Real-time audio isolation plugin for OBS Studio - removes background music from 
 
 ## 📦 Installation
 
+### Windows (Quick Start)
+
+**Automated Setup** (Recommended):
+```powershell
+# Run PowerShell as Administrator
+.\setup-windows.ps1
+```
+
+**Manual Build**:
+1. Open **Developer Command Prompt for VS**
+2. Run `build.bat`
+3. Run `install.bat` as Administrator
+4. See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for detailed instructions
+
+### macOS / Linux
+
+**Quick Build**:
+```bash
+./build.sh
+sudo cmake --install build
+```
+
+See [Building from Source](#-building-from-source) for detailed instructions.
+
 ### Pre-built Binaries (Coming Soon)
 
 1. Download the latest release from [Releases](https://github.com/yourusername/streameraudioremove/releases)
@@ -36,10 +62,6 @@ Real-time audio isolation plugin for OBS Studio - removes background music from 
    - **Linux**: `~/.config/obs-studio/plugins/`
 3. Restart OBS Studio
 4. Models will download automatically on first use
-
-### Manual Build
-
-See [Building from Source](#-building-from-source) below.
 
 ## 🚀 Quick Start
 

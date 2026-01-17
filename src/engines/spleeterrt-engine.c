@@ -9,6 +9,7 @@
 #include "../audio-isolator-filter.h"
 #include <util/platform.h>
 #include <onnxruntime_c_api.h>
+#include <string.h>
 
 struct spleeterrt_engine_context {
 	OrtSession *session;
@@ -48,7 +49,13 @@ static audio_engine_context_t *spleeterrt_create(uint32_t sample_rate, uint8_t c
 	ctx->ort_api->CreateSessionOptions(&session_options);
 
 	// Try GPU first for best performance
-	OrtStatus *cuda_status = OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
+	OrtCUDAProviderOptions cuda_options;
+	memset(&cuda_options, 0, sizeof(cuda_options));
+	cuda_options.device_id = 0;
+
+	OrtStatus *cuda_status = ctx->ort_api->SessionOptionsAppendExecutionProvider_CUDA(
+		session_options, &cuda_options);
+
 	if (cuda_status == NULL) {
 		ctx->gpu_available = true;
 		blog(LOG_INFO, "GPU (CUDA) enabled for SpleeterRT");
@@ -85,8 +92,8 @@ static audio_engine_context_t *spleeterrt_create(uint32_t sample_rate, uint8_t c
 
 	// Create memory info
 	if (ctx->gpu_available) {
-		ctx->ort_api->CreateMemoryInfo("Cuda", OrtAllocatorType::OrtArenaAllocator,
-		                                0, OrtMemType::OrtMemTypeDefault, &ctx->memory_info);
+		ctx->ort_api->CreateMemoryInfo("Cuda", OrtArenaAllocator,
+		                                0, OrtMemTypeDefault, &ctx->memory_info);
 	} else {
 		ctx->ort_api->CreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault,
 		                                   &ctx->memory_info);
