@@ -108,11 +108,24 @@ Section "Main Application" SEC01
   CreateDirectory "$INSTDIR\data\obs-plugins\stream-audio-isolator\models"
   DetailPrint "Created models directory"
 
-  ; Copy models if they exist
+  ; Copy models (REQUIRED - installer will fail if missing)
   SetOutPath "$INSTDIR\data\obs-plugins\stream-audio-isolator\models"
-  IfFileExists "models\*.onnx" 0 +2
-    File "models\*.onnx"
-    DetailPrint "Installed AI models"
+
+  ; Check if models directory exists
+  IfFileExists "models\sherpa-vocals.onnx" +3 0
+    MessageBox MB_OK|MB_ICONEXCLAMATION "AI models not found!$\r$\n$\r$\nRun download-all-models.bat first to download models.$\r$\n$\r$\nInstaller will continue but plugin will not work without models."
+    Goto skip_models
+
+  ; Install all models
+  File "models\*.onnx"
+  DetailPrint "Installed AI models"
+
+  ; Count and display installed models
+  FindFirst $0 $1 "$INSTDIR\data\obs-plugins\stream-audio-isolator\models\*.onnx"
+  DetailPrint "Models ready for use!"
+  FindClose $0
+
+  skip_models:
 
   ; Write uninstaller
   WriteUninstaller "$INSTDIR\Uninstall-StreamAudioIsolator.exe"

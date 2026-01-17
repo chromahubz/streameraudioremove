@@ -31,17 +31,21 @@ Real-time audio isolation plugin for OBS Studio - removes background music from 
 
 ### Windows (Quick Start)
 
-**Automated Setup** (Recommended):
-```powershell
-# Run PowerShell as Administrator
-.\setup-windows.ps1
+**Pre-built Installer** (Coming Soon):
+```
+1. Download StreamAudioIsolator-Setup.exe (70 MB)
+2. Run as administrator
+3. Done! AI models included, works immediately ✅
 ```
 
-**Manual Build**:
-1. Open **Developer Command Prompt for VS**
-2. Run `build.bat`
-3. Run `install.bat` as Administrator
-4. See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for detailed instructions
+**Build It Yourself**:
+```batch
+download-all-models.bat  # Download AI models (55 MB)
+build.bat                # Compile plugin
+build-installer.bat      # Create .exe installer (includes models!)
+```
+
+See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) and [MODEL_HOSTING_GUIDE.md](MODEL_HOSTING_GUIDE.md) for details
 
 ### macOS / Linux
 
@@ -55,13 +59,17 @@ See [Building from Source](#-building-from-source) for detailed instructions.
 
 ### Pre-built Binaries (Coming Soon)
 
-1. Download the latest release from [Releases](https://github.com/yourusername/streameraudioremove/releases)
-2. Extract to your OBS plugins folder:
-   - **Windows**: `C:\Program Files\obs-studio\obs-plugins\64bit\`
-   - **macOS**: `~/Library/Application Support/obs-studio/plugins/`
-   - **Linux**: `~/.config/obs-studio/plugins/`
+**Download from**: [GitHub Releases](https://github.com/chromahubz/streameraudioremove/releases)
+
+**Two versions available:**
+- **Full Installer** (70 MB) - Includes all 4 AI models, works immediately
+- **Lite Installer** (15 MB) - No models, download separately
+
+After download:
+1. Run `StreamAudioIsolator-Setup.exe` as administrator (Windows)
+2. Or extract to OBS plugins folder (macOS/Linux)
 3. Restart OBS Studio
-4. Models will download automatically on first use
+4. Works immediately! (Full version) ✅
 
 ## 🚀 Quick Start
 

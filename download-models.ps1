@@ -17,30 +17,34 @@ $models = @{
     "sherpa" = @{
         "name" = "Sherpa-ONNX (CPU)"
         "file" = "sherpa-vocals.onnx"
-        "url" = "https://github.com/yourusername/streameraudioremove/releases/download/models-v1.0/sherpa-vocals.onnx"
+        "url" = "https://github.com/chromahubz/streameraudioremove/releases/download/models-v1.0/sherpa-vocals.onnx"
         "size" = "15 MB"
         "description" = "Fast CPU processing, works on any PC"
+        "required" = $true
     }
     "hstasnet" = @{
         "name" = "HS-TasNet (GPU)"
         "file" = "hstasnet.onnx"
-        "url" = "https://github.com/yourusername/streameraudioremove/releases/download/models-v1.0/hstasnet.onnx"
+        "url" = "https://github.com/chromahubz/streameraudioremove/releases/download/models-v1.0/hstasnet.onnx"
         "size" = "8 MB"
         "description" = "Ultra-low latency with NVIDIA GPU"
+        "required" = $false
     }
     "clearervoice" = @{
         "name" = "ClearerVoice"
         "file" = "clearervoice.onnx"
-        "url" = "https://github.com/yourusername/streameraudioremove/releases/download/models-v1.0/clearervoice.onnx"
+        "url" = "https://github.com/chromahubz/streameraudioremove/releases/download/models-v1.0/clearervoice.onnx"
         "size" = "12 MB"
         "description" = "Best speech clarity"
+        "required" = $false
     }
     "spleeterrt" = @{
         "name" = "SpleeterRT"
         "file" = "spleeterrt.onnx"
-        "url" = "https://github.com/yourusername/streameraudioremove/releases/download/models-v1.0/spleeterrt.onnx"
+        "url" = "https://github.com/chromahubz/streameraudioremove/releases/download/models-v1.0/spleeterrt.onnx"
         "size" = "20 MB"
         "description" = "Highest separation quality"
+        "required" = $false
     }
 }
 

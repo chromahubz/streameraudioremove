@@ -50,6 +50,30 @@ if not exist "onnxruntime-win-x64-*\lib\onnxruntime.dll" (
 echo [OK] ONNX Runtime found
 echo.
 
+REM Check for AI models
+echo Checking for AI models...
+if exist "models\*.onnx" (
+    echo [OK] Models found:
+    dir /b models\*.onnx
+    echo.
+) else (
+    echo [WARNING] No AI models found!
+    echo.
+    echo The installer will work, but the plugin won't function without models.
+    echo.
+    echo To include models in installer:
+    echo 1. Run: download-all-models.bat
+    echo    OR
+    echo 2. Download pre-converted models from GitHub releases
+    echo    and place in models\ directory
+    echo.
+    echo At minimum, include: models\sherpa-vocals.onnx (15 MB)
+    echo.
+    choice /C YN /M "Continue building installer without models"
+    if errorlevel 2 exit /b 1
+    echo.
+)
+
 REM Build installer
 echo Building installer with NSIS...
 echo.
