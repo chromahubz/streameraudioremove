@@ -1,0 +1,38 @@
+GNU GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
+
+Copyright (C) 2024 Stream Audio Isolator Contributors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+---
+
+Additional Notices:
+
+This plugin uses ONNX Runtime (MIT License):
+Copyright (c) Microsoft Corporation
+
+AI models used with this plugin have their own licenses:
+- Sherpa-ONNX models: Apache 2.0
+- Spleeter models: MIT License
+- ClearerVoice models: Apache 2.0
+- Other models: See MODELS.md for details
+
+When redistributing this software, you must:
+1. Include this LICENSE file
+2. Include notices for ONNX Runtime and AI models
+3. Respect licenses of any AI models you distribute
+4. Provide source code access (GPL requirement)
+
+For full GPL-3.0 text, see: https://www.gnu.org/licenses/gpl-3.0.txt

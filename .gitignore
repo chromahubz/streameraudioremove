@@ -1,0 +1,52 @@
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Compiled files
+*.o
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+
+# ONNX Runtime
+onnxruntime-*/
+*.tgz
+*.tar.gz
+*.zip
+
+# AI Models (large files)
+models/*.onnx
+models/*.pt
+models/*.pth
+*.onnx
+*.pt
+
+# Keep model directory structure but not the models
+!models/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Package files
+*.deb
+*.rpm
+*.pkg
+*.msi
+
+# Editor backups
+*.bak
+*.tmp
