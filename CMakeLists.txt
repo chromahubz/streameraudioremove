@@ -22,14 +22,10 @@ if(NOT BUILD_STANDALONE)
 
         message(STATUS "OBS headers found: ${LIBOBS_INCLUDE_DIR}")
 
-        # Add OBS deps include directory directly (for pthread.h, etc.)
-        foreach(prefix_path ${CMAKE_PREFIX_PATH})
-            if(EXISTS "${prefix_path}/include")
-                set(DEPS_INCLUDE_DIR "${prefix_path}/include")
-                message(STATUS "Deps include found: ${DEPS_INCLUDE_DIR}")
-                break()
-            endif()
-        endforeach()
+        # Add deps include directly (CMAKE_PREFIX_PATH is root, include is under it)
+        list(GET CMAKE_PREFIX_PATH 0 FIRST_PREFIX)
+        set(DEPS_INCLUDE_DIR "${FIRST_PREFIX}/include")
+        message(STATUS "Using deps include: ${DEPS_INCLUDE_DIR}")
     else()
         # Find OBS using package config
         find_package(libobs REQUIRED)
