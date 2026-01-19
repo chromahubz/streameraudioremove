@@ -102,19 +102,24 @@ jobs:
         # Set as environment variable (CMake needs ENV:ONNXRUNTIME_DIR)
         $env:ONNXRUNTIME_DIR = "$PWD\onnxruntime-win-x64-1.16.0"
 
+        # Add OBS include paths
+        $obsInclude = "$PWD\obs-studio\bin\64bit" -replace '\\', '/'
+        $depsPath = "$PWD" -replace '\\', '/'
+
         Write-Host "Build paths:"
         Write-Host "  ONNXRUNTIME_DIR: $env:ONNXRUNTIME_DIR"
+        Write-Host "  OBS path: $obsInclude"
 
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
 
-        Write-Host "Trying standalone build (no OBS integration needed)..."
-
+        # Try building with OBS headers from pre-built installation
         cmake .. `
           -G "Visual Studio 17 2022" `
           -A x64 `
           -DCMAKE_BUILD_TYPE=Release `
-          -DBUILD_STANDALONE=ON
+          -DCMAKE_PREFIX_PATH="$depsPath" `
+          -DBUILD_STANDALONE=OFF
 
         if ($LASTEXITCODE -ne 0) {
           Write-Host "ERROR: CMake configuration failed!"
