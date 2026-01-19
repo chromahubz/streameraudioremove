@@ -82,14 +82,14 @@ jobs:
 
     - name: Build Plugin
       run: |
-        $env:ONNXRUNTIME_DIR = "$PWD\onnxruntime-win-x64-1.16.0"
-        $env:CMAKE_PREFIX_PATH = "$PWD"
-        $env:CMAKE_MODULE_PATH = "$PWD\cmake"
+        $onnxDir = "$PWD\onnxruntime-win-x64-1.16.0" -replace '\\', '/'
+        $prefixPath = "$PWD" -replace '\\', '/'
+        $modulePath = "$PWD\cmake" -replace '\\', '/'
 
         Write-Host "Build paths:"
-        Write-Host "  ONNXRUNTIME_DIR: $env:ONNXRUNTIME_DIR"
-        Write-Host "  CMAKE_PREFIX_PATH: $env:CMAKE_PREFIX_PATH"
-        Write-Host "  CMAKE_MODULE_PATH: $env:CMAKE_MODULE_PATH"
+        Write-Host "  ONNXRUNTIME_DIR: $onnxDir"
+        Write-Host "  CMAKE_PREFIX_PATH: $prefixPath"
+        Write-Host "  CMAKE_MODULE_PATH: $modulePath"
 
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
@@ -98,9 +98,9 @@ jobs:
           -G "Visual Studio 17 2022" `
           -A x64 `
           -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$env:CMAKE_PREFIX_PATH" `
-          -DCMAKE_MODULE_PATH="$env:CMAKE_MODULE_PATH" `
-          -DONNXRUNTIME_DIR="$env:ONNXRUNTIME_DIR"
+          -DCMAKE_PREFIX_PATH="$prefixPath" `
+          -DCMAKE_MODULE_PATH="$modulePath" `
+          -DONNXRUNTIME_DIR="$onnxDir"
 
         if ($LASTEXITCODE -ne 0) {
           Write-Host "ERROR: CMake configuration failed!"
