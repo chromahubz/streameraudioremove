@@ -22,14 +22,16 @@ jobs:
       id: cache-obs-deps
       uses: actions/cache@v4
       with:
-        path: obs-deps
-        key: obs-deps-2025-08-23-qt6-x64
+        path: |
+          deps
+          windows-deps-2025-08-23-x64
+        key: obs-deps-2025-08-23-x64
 
     - name: Download OBS Dependencies
       if: steps.cache-obs-deps.outputs.cache-hit != 'true'
       run: |
-        Invoke-WebRequest -Uri "https://github.com/obsproject/obs-deps/releases/download/2025-08-23/windows-deps-qt6-2025-08-23-x64.zip" -OutFile "obs-deps.zip"
-        Expand-Archive -Path "obs-deps.zip" -DestinationPath "obs-deps"
+        Invoke-WebRequest -Uri "https://github.com/obsproject/obs-deps/releases/download/2025-08-23/windows-deps-2025-08-23-x64.zip" -OutFile "obs-deps.zip"
+        Expand-Archive -Path "obs-deps.zip" -DestinationPath "."
         Remove-Item "obs-deps.zip"
         Write-Host "OBS dependencies downloaded"
       shell: powershell
@@ -77,7 +79,19 @@ jobs:
     - name: Build Plugin
       run: |
         $env:ONNXRUNTIME_DIR = "$PWD\onnxruntime-win-x64-1.16.0"
-        $env:CMAKE_PREFIX_PATH = "$PWD\obs-deps"
+
+        # Check where obs-deps extracted to
+        Write-Host "Checking for OBS deps..."
+        if (Test-Path "deps") {
+          $env:CMAKE_PREFIX_PATH = "$PWD\deps"
+          Write-Host "Found deps at: $env:CMAKE_PREFIX_PATH"
+        } elseif (Test-Path "windows-deps-2025-08-23-x64") {
+          $env:CMAKE_PREFIX_PATH = "$PWD\windows-deps-2025-08-23-x64"
+          Write-Host "Found deps at: $env:CMAKE_PREFIX_PATH"
+        } else {
+          Write-Host "Listing current directory to find deps:"
+          Get-ChildItem -Directory
+        }
 
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
