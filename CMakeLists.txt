@@ -7,11 +7,24 @@ set(CMAKE_C_STANDARD 11)
 
 # Add option to build without OBS (for testing)
 option(BUILD_STANDALONE "Build standalone test version" OFF)
+option(OBS_INCLUDE_ONLY "Use OBS headers without find_package" OFF)
 
 if(NOT BUILD_STANDALONE)
-    # Find OBS
-    find_package(libobs REQUIRED)
-    find_package(obs-frontend-api REQUIRED)
+    if(OBS_INCLUDE_ONLY)
+        # Manual OBS header setup (for CI builds)
+        find_path(LIBOBS_INCLUDE_DIR obs-module.h
+            HINTS ENV LIBOBS_INCLUDE_DIR ${CMAKE_PREFIX_PATH}
+            PATH_SUFFIXES libobs
+        )
+        if(NOT LIBOBS_INCLUDE_DIR)
+            message(FATAL_ERROR "OBS headers not found! Set LIBOBS_INCLUDE_DIR")
+        endif()
+        message(STATUS "OBS headers found: ${LIBOBS_INCLUDE_DIR}")
+    else()
+        # Find OBS using package config
+        find_package(libobs REQUIRED)
+        find_package(obs-frontend-api REQUIRED)
+    endif()
 endif()
 
 # Find ONNX Runtime
@@ -45,11 +58,22 @@ target_include_directories(stream-audio-isolator PRIVATE
 )
 
 if(NOT BUILD_STANDALONE)
-    # Link OBS libraries
-    target_link_libraries(stream-audio-isolator
-        OBS::libobs
-        ${ONNXRUNTIME_LIBRARY}
-    )
+    if(OBS_INCLUDE_ONLY)
+        # Add OBS headers manually
+        target_include_directories(stream-audio-isolator PRIVATE
+            ${LIBOBS_INCLUDE_DIR}
+        )
+        # Link only ONNX (OBS will load plugin as module)
+        target_link_libraries(stream-audio-isolator
+            ${ONNXRUNTIME_LIBRARY}
+        )
+    else()
+        # Link OBS libraries normally
+        target_link_libraries(stream-audio-isolator
+            OBS::libobs
+            ${ONNXRUNTIME_LIBRARY}
+        )
+    endif()
 else()
     # Standalone build (for testing engines without OBS)
     target_link_libraries(stream-audio-isolator

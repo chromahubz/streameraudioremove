@@ -40,21 +40,22 @@ jobs:
         Write-Host "OBS dependencies downloaded"
       shell: powershell
 
-    - name: Cache OBS Studio
+    - name: Cache OBS Studio Source
       id: cache-obs-studio
       uses: actions/cache@v4
       with:
-        path: obs-studio
-        key: obs-studio-30.2.2-source
+        path: obs-studio-source
+        key: obs-studio-30.2.2-source-headers
 
-    - name: Download OBS Studio (Pre-built)
+    - name: Download OBS Studio Source (for headers)
       if: steps.cache-obs-studio.outputs.cache-hit != 'true'
       run: |
-        # Download pre-built OBS which includes SDK headers
-        Invoke-WebRequest -Uri "https://github.com/obsproject/obs-studio/releases/download/30.2.2/OBS-Studio-30.2.2-Windows.zip" -OutFile "obs-prebuilt.zip"
-        Expand-Archive -Path "obs-prebuilt.zip" -DestinationPath "obs-studio"
-        Remove-Item "obs-prebuilt.zip"
-        Write-Host "OBS Studio pre-built downloaded"
+        # Download OBS source code for development headers
+        Invoke-WebRequest -Uri "https://github.com/obsproject/obs-studio/archive/refs/tags/30.2.2.zip" -OutFile "obs-source.zip"
+        Expand-Archive -Path "obs-source.zip" -DestinationPath "."
+        Move-Item "obs-studio-30.2.2" "obs-studio-source"
+        Remove-Item "obs-source.zip"
+        Write-Host "OBS Studio source downloaded (headers only)"
       shell: powershell
 
     - name: Cache ONNX Runtime
@@ -99,27 +100,23 @@ jobs:
 
     - name: Build Plugin
       run: |
-        # Set as environment variable (CMake needs ENV:ONNXRUNTIME_DIR)
+        # Set environment variables
         $env:ONNXRUNTIME_DIR = "$PWD\onnxruntime-win-x64-1.16.0"
-
-        # Add OBS include paths
-        $obsInclude = "$PWD\obs-studio\bin\64bit" -replace '\\', '/'
-        $depsPath = "$PWD" -replace '\\', '/'
+        $env:LIBOBS_INCLUDE_DIR = "$PWD\obs-studio-source\libobs"
 
         Write-Host "Build paths:"
         Write-Host "  ONNXRUNTIME_DIR: $env:ONNXRUNTIME_DIR"
-        Write-Host "  OBS path: $obsInclude"
+        Write-Host "  LIBOBS_INCLUDE_DIR: $env:LIBOBS_INCLUDE_DIR"
 
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
 
-        # Try building with OBS headers from pre-built installation
+        # Build with OBS headers only (no linking to OBS libs)
         cmake .. `
           -G "Visual Studio 17 2022" `
           -A x64 `
           -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$depsPath" `
-          -DBUILD_STANDALONE=OFF
+          -DOBS_INCLUDE_ONLY=ON
 
         if ($LASTEXITCODE -ne 0) {
           Write-Host "ERROR: CMake configuration failed!"
