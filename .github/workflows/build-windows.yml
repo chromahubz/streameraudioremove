@@ -47,35 +47,14 @@ jobs:
         path: obs-studio
         key: obs-studio-30.2.2-source
 
-    - name: Download OBS Studio Source
+    - name: Download OBS Studio (Pre-built)
       if: steps.cache-obs-studio.outputs.cache-hit != 'true'
       run: |
-        Invoke-WebRequest -Uri "https://github.com/obsproject/obs-studio/archive/refs/tags/30.2.2.zip" -OutFile "obs-studio.zip"
-        Expand-Archive -Path "obs-studio.zip" -DestinationPath "."
-        Move-Item "obs-studio-30.2.2" "obs-studio"
-        Remove-Item "obs-studio.zip"
-        Write-Host "OBS Studio source downloaded"
-      shell: powershell
-
-    - name: Build OBS Studio (for SDK)
-      if: steps.cache-obs-studio.outputs.cache-hit != 'true'
-      run: |
-        $depsPath = "$PWD" -replace '\\', '/'
-
-        Set-Location obs-studio
-        New-Item -ItemType Directory -Force -Path "build"
-        Set-Location build
-
-        cmake .. `
-          -G "Visual Studio 17 2022" `
-          -A x64 `
-          -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$depsPath"
-
-        cmake --build . --config Release --target obs-frontend-api
-
-        Write-Host "OBS Studio SDK built"
-        Set-Location ..\..
+        # Download pre-built OBS which includes SDK headers
+        Invoke-WebRequest -Uri "https://github.com/obsproject/obs-studio/releases/download/30.2.2/OBS-Studio-30.2.2-Windows.zip" -OutFile "obs-prebuilt.zip"
+        Expand-Archive -Path "obs-prebuilt.zip" -DestinationPath "obs-studio"
+        Remove-Item "obs-prebuilt.zip"
+        Write-Host "OBS Studio pre-built downloaded"
       shell: powershell
 
     - name: Cache ONNX Runtime
@@ -122,12 +101,15 @@ jobs:
       run: |
         $onnxDir = "$PWD\onnxruntime-win-x64-1.16.0" -replace '\\', '/'
         $depsPath = "$PWD" -replace '\\', '/'
-        $obsPath = "$PWD\obs-studio\build" -replace '\\', '/'
+        $obsPath = "$PWD\obs-studio" -replace '\\', '/'
 
         Write-Host "Build paths:"
         Write-Host "  ONNXRUNTIME_DIR: $onnxDir"
         Write-Host "  DEPS_PATH: $depsPath"
         Write-Host "  OBS_PATH: $obsPath"
+
+        Write-Host "Checking OBS installation..."
+        Get-ChildItem "$obsPath" -Recurse -Filter "*.cmake" | Select-Object -First 5
 
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
@@ -136,14 +118,25 @@ jobs:
           -G "Visual Studio 17 2022" `
           -A x64 `
           -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$depsPath;$obsPath" `
+          -DCMAKE_PREFIX_PATH="$depsPath;$obsPath/cmake" `
           -DONNXRUNTIME_DIR="$onnxDir" `
-          -Dlibobs_DIR="$obsPath/libobs" `
-          -Dobs-frontend-api_DIR="$obsPath/UI/obs-frontend-api"
+          -Dlibobs_DIR="$obsPath/cmake" `
+          -Dobs-frontend-api_DIR="$obsPath/cmake"
 
         if ($LASTEXITCODE -ne 0) {
-          Write-Host "ERROR: CMake configuration failed!"
-          exit 1
+          Write-Host "ERROR: CMake configuration failed, trying standalone build..."
+
+          cmake .. `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_STANDALONE=ON `
+            -DONNXRUNTIME_DIR="$onnxDir"
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Standalone build also failed!"
+            exit 1
+          }
         }
 
         cmake --build . --config Release
@@ -154,7 +147,7 @@ jobs:
         }
 
         Write-Host "Build completed!"
-        Get-ChildItem -Path "Release" -Recurse
+        Get-ChildItem -Recurse
       shell: powershell
 
     - name: Build Installer
