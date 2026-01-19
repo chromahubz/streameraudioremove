@@ -19,7 +19,17 @@ if(NOT BUILD_STANDALONE)
         if(NOT LIBOBS_INCLUDE_DIR)
             message(FATAL_ERROR "OBS headers not found! Set LIBOBS_INCLUDE_DIR")
         endif()
+
+        # Find pthread headers from deps
+        find_path(DEPS_INCLUDE_DIR pthread.h
+            HINTS ${CMAKE_PREFIX_PATH}
+            PATH_SUFFIXES include
+        )
+
         message(STATUS "OBS headers found: ${LIBOBS_INCLUDE_DIR}")
+        if(DEPS_INCLUDE_DIR)
+            message(STATUS "Deps headers found: ${DEPS_INCLUDE_DIR}")
+        endif()
     else()
         # Find OBS using package config
         find_package(libobs REQUIRED)
@@ -63,6 +73,12 @@ if(NOT BUILD_STANDALONE)
         target_include_directories(stream-audio-isolator PRIVATE
             ${LIBOBS_INCLUDE_DIR}
         )
+        # Add deps headers if found (pthread, etc.)
+        if(DEPS_INCLUDE_DIR)
+            target_include_directories(stream-audio-isolator PRIVATE
+                ${DEPS_INCLUDE_DIR}
+            )
+        endif()
         # Link only ONNX (OBS will load plugin as module)
         target_link_libraries(stream-audio-isolator
             ${ONNXRUNTIME_LIBRARY}
