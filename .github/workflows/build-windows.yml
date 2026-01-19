@@ -99,44 +99,26 @@ jobs:
 
     - name: Build Plugin
       run: |
-        $onnxDir = "$PWD\onnxruntime-win-x64-1.16.0" -replace '\\', '/'
-        $depsPath = "$PWD" -replace '\\', '/'
-        $obsPath = "$PWD\obs-studio" -replace '\\', '/'
+        # Set as environment variable (CMake needs ENV:ONNXRUNTIME_DIR)
+        $env:ONNXRUNTIME_DIR = "$PWD\onnxruntime-win-x64-1.16.0"
 
         Write-Host "Build paths:"
-        Write-Host "  ONNXRUNTIME_DIR: $onnxDir"
-        Write-Host "  DEPS_PATH: $depsPath"
-        Write-Host "  OBS_PATH: $obsPath"
-
-        Write-Host "Checking OBS installation..."
-        Get-ChildItem "$obsPath" -Recurse -Filter "*.cmake" | Select-Object -First 5
+        Write-Host "  ONNXRUNTIME_DIR: $env:ONNXRUNTIME_DIR"
 
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
+
+        Write-Host "Trying standalone build (no OBS integration needed)..."
 
         cmake .. `
           -G "Visual Studio 17 2022" `
           -A x64 `
           -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$depsPath;$obsPath/cmake" `
-          -DONNXRUNTIME_DIR="$onnxDir" `
-          -Dlibobs_DIR="$obsPath/cmake" `
-          -Dobs-frontend-api_DIR="$obsPath/cmake"
+          -DBUILD_STANDALONE=ON
 
         if ($LASTEXITCODE -ne 0) {
-          Write-Host "ERROR: CMake configuration failed, trying standalone build..."
-
-          cmake .. `
-            -G "Visual Studio 17 2022" `
-            -A x64 `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DBUILD_STANDALONE=ON `
-            -DONNXRUNTIME_DIR="$onnxDir"
-
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "ERROR: Standalone build also failed!"
-            exit 1
-          }
+          Write-Host "ERROR: CMake configuration failed!"
+          exit 1
         }
 
         cmake --build . --config Release
@@ -147,7 +129,7 @@ jobs:
         }
 
         Write-Host "Build completed!"
-        Get-ChildItem -Recurse
+        Get-ChildItem -Recurse -Include *.dll
       shell: powershell
 
     - name: Build Installer
