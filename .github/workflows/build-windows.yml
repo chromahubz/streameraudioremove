@@ -1,0 +1,154 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Cache OBS Studio Dependencies
+      id: cache-obs
+      uses: actions/cache@v4
+      with:
+        path: obs-deps
+        key: obs-deps-2023-windows
+
+    - name: Download OBS Studio Dependencies
+      if: steps.cache-obs.outputs.cache-hit != 'true'
+      run: |
+        # Download OBS dependencies for plugin development
+        Invoke-WebRequest -Uri "https://cdn-fastly.obsproject.com/downloads/dependencies2023.zip" -OutFile "obs-deps.zip"
+        Expand-Archive -Path "obs-deps.zip" -DestinationPath "obs-deps"
+        Remove-Item "obs-deps.zip"
+      shell: powershell
+
+    - name: Cache ONNX Runtime
+      id: cache-onnx
+      uses: actions/cache@v4
+      with:
+        path: onnxruntime-win-x64-1.16.0
+        key: onnxruntime-1.16.0-win-x64
+
+    - name: Download ONNX Runtime
+      if: steps.cache-onnx.outputs.cache-hit != 'true'
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/microsoft/onnxruntime/releases/download/v1.16.0/onnxruntime-win-x64-1.16.0.zip" -OutFile "onnxruntime.zip"
+        Expand-Archive -Path "onnxruntime.zip" -DestinationPath "."
+        Remove-Item "onnxruntime.zip"
+      shell: powershell
+
+    - name: Download AI Models
+      run: |
+        New-Item -ItemType Directory -Force -Path "models"
+
+        Write-Host "Downloading Sherpa-ONNX model (64 MB)..."
+        Invoke-WebRequest -Uri "https://huggingface.co/Blane187/all_public_uvr_models/resolve/main/UVR-MDX-NET-Inst_HQ_1.onnx" -OutFile "models\sherpa-vocals.onnx"
+
+        Write-Host "Downloading HS-TasNet model (64 MB)..."
+        Invoke-WebRequest -Uri "https://huggingface.co/seanghay/uvr_models/resolve/main/UVR-MDX-NET-Inst_HQ_2.onnx?download=true" -OutFile "models\hstasnet-vocals.onnx"
+
+        Write-Host "Downloading ClearerVoice model (64 MB)..."
+        Invoke-WebRequest -Uri "https://huggingface.co/seanghay/uvr_models/resolve/main/UVR-MDX-NET-Inst_HQ_3.onnx?download=true" -OutFile "models\clearervoice-vocals.onnx"
+
+        Write-Host "Downloading SpleeterRT model (51 MB)..."
+        Invoke-WebRequest -Uri "https://huggingface.co/seanghay/uvr_models/resolve/main/UVR_MDXNET_KARA_2.onnx?download=true" -OutFile "models\spleeterrt-vocals.onnx"
+
+        Write-Host "Models downloaded:"
+        Get-ChildItem -Path "models\*.onnx" | ForEach-Object { Write-Host "  $($_.Name) - $([math]::Round($_.Length/1MB, 2)) MB" }
+      shell: powershell
+
+    - name: Setup NSIS
+      run: |
+        choco install nsis -y
+      shell: powershell
+
+    - name: Build Plugin
+      run: |
+        $env:ONNXRUNTIME_DIR = "$PWD\onnxruntime-win-x64-1.16.0"
+        $env:OBS_DIR = "$PWD\obs-deps"
+
+        New-Item -ItemType Directory -Force -Path "build"
+        Set-Location "build"
+
+        cmake .. `
+          -G "Visual Studio 17 2022" `
+          -A x64 `
+          -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_PREFIX_PATH="$env:OBS_DIR" `
+          -DONNXRUNTIME_DIR="$env:ONNXRUNTIME_DIR"
+
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "CMake configuration failed, trying standalone build..."
+          cmake .. `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_STANDALONE=ON `
+            -DONNXRUNTIME_DIR="$env:ONNXRUNTIME_DIR"
+        }
+
+        cmake --build . --config Release
+
+        Write-Host "Build completed!"
+      shell: powershell
+
+    - name: Build Installer
+      run: |
+        # Check if NSIS is available
+        $nsisPath = "C:\Program Files (x86)\NSIS\makensis.exe"
+        if (-not (Test-Path $nsisPath)) {
+          Write-Host "ERROR: NSIS not found at $nsisPath"
+          exit 1
+        }
+
+        # Check if models exist
+        if (-not (Test-Path "models\*.onnx")) {
+          Write-Host "ERROR: Models not found!"
+          exit 1
+        }
+
+        # Build installer
+        & $nsisPath installer.nsi
+
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "ERROR: Installer build failed!"
+          exit 1
+        }
+
+        Write-Host "Installer built successfully!"
+
+        # Show installer size
+        $installer = Get-Item "StreamAudioIsolator-Setup.exe"
+        Write-Host "Installer: $($installer.Name) - $([math]::Round($installer.Length/1MB, 2)) MB"
+      shell: powershell
+
+    - name: Upload Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: StreamAudioIsolator-Windows-Installer
+        path: StreamAudioIsolator-Setup.exe
+        retention-days: 30
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: StreamAudioIsolator-Windows-Build
+        path: |
+          build/Release/*.dll
+          models/*.onnx
+        retention-days: 7
