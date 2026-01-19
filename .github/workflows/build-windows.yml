@@ -23,8 +23,12 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          deps
-          windows-deps-2025-08-23-x64
+          bin
+          cmake
+          include
+          lib
+          share
+          licenses
         key: obs-deps-2025-08-23-x64
 
     - name: Download OBS Dependencies
@@ -79,19 +83,13 @@ jobs:
     - name: Build Plugin
       run: |
         $env:ONNXRUNTIME_DIR = "$PWD\onnxruntime-win-x64-1.16.0"
+        $env:CMAKE_PREFIX_PATH = "$PWD"
+        $env:CMAKE_MODULE_PATH = "$PWD\cmake"
 
-        # Check where obs-deps extracted to
-        Write-Host "Checking for OBS deps..."
-        if (Test-Path "deps") {
-          $env:CMAKE_PREFIX_PATH = "$PWD\deps"
-          Write-Host "Found deps at: $env:CMAKE_PREFIX_PATH"
-        } elseif (Test-Path "windows-deps-2025-08-23-x64") {
-          $env:CMAKE_PREFIX_PATH = "$PWD\windows-deps-2025-08-23-x64"
-          Write-Host "Found deps at: $env:CMAKE_PREFIX_PATH"
-        } else {
-          Write-Host "Listing current directory to find deps:"
-          Get-ChildItem -Directory
-        }
+        Write-Host "Build paths:"
+        Write-Host "  ONNXRUNTIME_DIR: $env:ONNXRUNTIME_DIR"
+        Write-Host "  CMAKE_PREFIX_PATH: $env:CMAKE_PREFIX_PATH"
+        Write-Host "  CMAKE_MODULE_PATH: $env:CMAKE_MODULE_PATH"
 
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
@@ -101,6 +99,7 @@ jobs:
           -A x64 `
           -DCMAKE_BUILD_TYPE=Release `
           -DCMAKE_PREFIX_PATH="$env:CMAKE_PREFIX_PATH" `
+          -DCMAKE_MODULE_PATH="$env:CMAKE_MODULE_PATH" `
           -DONNXRUNTIME_DIR="$env:ONNXRUNTIME_DIR"
 
         if ($LASTEXITCODE -ne 0) {
