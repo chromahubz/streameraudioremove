@@ -18,20 +18,20 @@ jobs:
     - name: Setup CMake
       uses: lukka/get-cmake@latest
 
-    - name: Cache OBS Studio Dependencies
-      id: cache-obs
+    - name: Cache OBS Dependencies
+      id: cache-obs-deps
       uses: actions/cache@v4
       with:
         path: obs-deps
-        key: obs-deps-2023-windows
+        key: obs-deps-2025-08-23-qt6-x64
 
-    - name: Download OBS Studio Dependencies
-      if: steps.cache-obs.outputs.cache-hit != 'true'
+    - name: Download OBS Dependencies
+      if: steps.cache-obs-deps.outputs.cache-hit != 'true'
       run: |
-        # Download OBS dependencies for plugin development
-        Invoke-WebRequest -Uri "https://cdn-fastly.obsproject.com/downloads/dependencies2023.zip" -OutFile "obs-deps.zip"
+        Invoke-WebRequest -Uri "https://github.com/obsproject/obs-deps/releases/download/2025-08-23/windows-deps-qt6-2025-08-23-x64.zip" -OutFile "obs-deps.zip"
         Expand-Archive -Path "obs-deps.zip" -DestinationPath "obs-deps"
         Remove-Item "obs-deps.zip"
+        Write-Host "OBS dependencies downloaded"
       shell: powershell
 
     - name: Cache ONNX Runtime
@@ -77,7 +77,7 @@ jobs:
     - name: Build Plugin
       run: |
         $env:ONNXRUNTIME_DIR = "$PWD\onnxruntime-win-x64-1.16.0"
-        $env:OBS_DIR = "$PWD\obs-deps"
+        $env:CMAKE_PREFIX_PATH = "$PWD\obs-deps"
 
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
@@ -86,22 +86,23 @@ jobs:
           -G "Visual Studio 17 2022" `
           -A x64 `
           -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$env:OBS_DIR" `
+          -DCMAKE_PREFIX_PATH="$env:CMAKE_PREFIX_PATH" `
           -DONNXRUNTIME_DIR="$env:ONNXRUNTIME_DIR"
 
         if ($LASTEXITCODE -ne 0) {
-          Write-Host "CMake configuration failed, trying standalone build..."
-          cmake .. `
-            -G "Visual Studio 17 2022" `
-            -A x64 `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DBUILD_STANDALONE=ON `
-            -DONNXRUNTIME_DIR="$env:ONNXRUNTIME_DIR"
+          Write-Host "ERROR: CMake configuration failed!"
+          exit 1
         }
 
         cmake --build . --config Release
 
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "ERROR: Build failed!"
+          exit 1
+        }
+
         Write-Host "Build completed!"
+        Get-ChildItem -Path "Release" -Recurse
       shell: powershell
 
     - name: Build Installer
