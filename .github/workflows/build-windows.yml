@@ -112,6 +112,16 @@ jobs:
         Write-Host "  LIBOBS_INCLUDE_DIR: $env:LIBOBS_INCLUDE_DIR"
         Write-Host "  DEPS_PATH: $depsPath"
 
+        # Check if pthread.h exists
+        Write-Host "Checking for pthread.h..."
+        if (Test-Path "$PWD\include\pthread.h") {
+          Write-Host "  [OK] Found pthread.h at include\pthread.h"
+        } else {
+          Write-Host "  [ERROR] pthread.h NOT FOUND!"
+          Write-Host "  Searching for pthread.h..."
+          Get-ChildItem -Recurse -Filter "pthread.h" | Select-Object -First 5
+        }
+
         New-Item -ItemType Directory -Force -Path "build"
         Set-Location "build"
 
